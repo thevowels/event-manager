@@ -13,5 +13,6 @@ Route::get('/user', function (Request $request) {
 Route::apiResource('events', EventController::class);
     // ->middleware('auth:sanctum');
 
-Route::apiResource('events.attendees', AttendeeController::class);
+Route::apiResource('events.attendees', AttendeeController::class)
+    ->except(['update']);
     // ->middleware('auth:sanctum');
