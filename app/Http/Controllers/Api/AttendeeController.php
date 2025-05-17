@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use App\Models\Attendee;
 use Illuminate\Http\Request;
 
@@ -11,6 +11,8 @@ use App\Models\Event;
 use App\Http\Resources\AttendeeResource;
 use App\Http\Traits\CanLoadRelationships;
 
+use Illuminate\Support\Facades\Gate;
+
 class AttendeeController extends Controller
 {
 
@@ -18,6 +20,12 @@ class AttendeeController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['index', 'show', 'update']);
+    }
+
+
 
     private array $relations = ['user'];
     public function index(Event $event)
@@ -66,6 +74,10 @@ class AttendeeController extends Controller
      */
     public function destroy(Event $event, Attendee $attendee)
     {
+        if(Gate::denies('delete-attendee', [$event, $attendee])) {
+            return response()->json(['message' => 'You are not the owner to delete this attendee.'], 403);
+        }
+        // Gate::authorize('delete-attendee', [$event, $attendee]);
         $attendee->delete();
         return response(status: 204);
     }
