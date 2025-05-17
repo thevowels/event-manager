@@ -4,33 +4,28 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
+use App\Http\Traits\CanLoadRelationships;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use Faker\Calculator\Ean;
+use Illuminate\Database\Eloquent\Model;
+
 
 class EventController extends Controller
 {
+
+    use CanLoadRelationships;
     /**
      * Display a listing of the resource.
      */
+    protected array $relations = ['user', 'attendees', 'attendees.user'];
     public function index(Request $request)
     {
-        $relations = ['user', 'attendees', 'attendees.user'];
         $events= Event::query();
-        foreach($relations as $relation) {
-            if($this->shouldIncludeRelation($relation)) {
-                $events->with($relation);
-            }
-        }
+
+        $this->loadRelationships($events);
         
         return EventResource::collection($events->paginate());
-    }
-
-    protected function shouldIncludeRelation(string $relation): bool
-    {
-        $include = request()->query('include');
-        if(!$include) return false;
-        $relations = array_map('trim', explode(',', $include));
-        return in_array($relation, $relations);
     }
 
     /**
@@ -47,15 +42,16 @@ class EventController extends Controller
 
 
         $event =  Event::create([...$data, 'user_id' => 1]);
-        return EventResource::make($event);
+        return new EventResource($this->loadRelationships($event));
     }
 
     /**
      * Display the specified resource.
      */
     public function show(Event $event)
-    {
-        return EventResource::make($event->load('user','attendees'));
+    {   
+        // return(EventResource::make($event->load('user')));
+        return new EventResource($this->loadRelationships($event));
     }
 
     /**
@@ -71,7 +67,7 @@ class EventController extends Controller
         ]);
         
         $event->update($data);
-        return $event;
+        return new EventResource($this->loadRelationships($event));
     }
 
 
