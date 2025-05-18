@@ -74,10 +74,11 @@ class AttendeeController extends Controller
      */
     public function destroy(Event $event, Attendee $attendee)
     {
-        if(Gate::denies('delete-attendee', [$event, $attendee])) {
-            return response()->json(['message' => 'You are not the owner to delete this attendee.'], 403);
-        }
+        // if(Gate::denies('delete-attendee', [$event, $attendee])) {
+        //     return response()->json(['message' => 'You are not the owner to delete this attendee.'], 403);
+        // }
         // Gate::authorize('delete-attendee', [$event, $attendee]);
+        Gate::authorize('delete', $attendee);
         $attendee->delete();
         return response(status: 204);
     }

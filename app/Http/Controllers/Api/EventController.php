@@ -18,14 +18,17 @@ class EventController extends Controller
      * Display a listing of the resource.
      */
 
-     public function __construct()
-     {
-         $this->middleware('auth:sanctum')->except(['index', 'show']);
-     }
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
+    }
 
     protected array $relations = ['user', 'attendees', 'attendees.user'];
+
     public function index(Request $request)
     {
+
+        Gate::authorize('viewAny', Event::class);
         $events= Event::query();
 
         $this->loadRelationships($events);
@@ -64,7 +67,7 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
-        Gate::authorize('update-event', $event);
+        Gate::authorize('update', $event);
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
