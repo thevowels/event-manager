@@ -11,6 +11,9 @@ use Illuminate\Support\ServiceProvider;
 
 use App\Policies\AttendeePolicy;
 use App\Policies\EventPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,5 +40,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(Attendee::class, AttendeePolicy::class);
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(3)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }
